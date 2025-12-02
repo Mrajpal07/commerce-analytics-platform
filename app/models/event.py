@@ -196,6 +196,33 @@ class Event(BaseModel, TenantMixin, Base):
         index=True,
         doc="Correlation ID for distributed tracing"
     )
+
+
+    # ========================================================================
+    # INITIALIZATION
+    # ========================================================================
+    
+    def __init__(self, **kwargs):
+        """
+        Initialize Event with default values.
+        
+        Ensures defaults are set even when creating objects in memory
+        (not just when inserting into database).
+        """
+        # Set defaults if not provided
+        if 'status' not in kwargs:
+            kwargs['status'] = EventStatus.PENDING.value
+        
+        if 'retry_count' not in kwargs:
+            kwargs['retry_count'] = 0
+        
+        if 'received_at' not in kwargs:
+            kwargs['received_at'] = datetime.utcnow()
+        
+        # Call parent constructor
+        super().__init__(**kwargs)
+    
+
     
     # ========================================================================
     # TABLE CONSTRAINTS & INDEXES
