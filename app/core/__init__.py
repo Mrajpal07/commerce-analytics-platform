@@ -5,6 +5,21 @@ Core utilities package.
 Exports commonly used core functionality.
 """
 
+"""
+Core utilities package.
+
+Exports commonly used core functionality.
+"""
+
+
+from app.core.logging import (
+    get_logger,
+    CorrelationIdContext,
+    set_correlation_id,
+    get_correlation_id,
+    clear_correlation_id,
+    log_function_call,
+)
 
 
 from app.core.security import (
@@ -30,22 +45,7 @@ from app.core.security import (
     mask_token,
 )
 
-__all__ = [
-    # ... (keep existing exception exports)
-    
-    # Security
-    "hash_password",
-    "verify_password",
-    "create_access_token",
-    "create_refresh_token",
-    "decode_access_token",
-    "decode_refresh_token",
-    "encrypt_token",
-    "decrypt_token",
-    "verify_webhook_signature",
-    "generate_webhook_signature",
-    "mask_token",
-]
+
 
 """
 Core utilities package.
@@ -97,6 +97,22 @@ from app.core.exceptions import (
     ConfigurationException,
 )
 
+
+# Import constants (make them available but don't export all)
+from app.core import constants
+
+
+
+from app.core.idempotency import (
+    generate_idempotency_key,
+    generate_simple_idempotency_key,
+    parse_idempotency_key,
+    validate_idempotency_key,
+    generate_correlation_id,
+    generate_request_id,
+    hash_dict,
+)
+
 __all__ = [
     # Base
     "AppException",
@@ -140,4 +156,40 @@ __all__ = [
     "DatabaseException",
     "TaskExecutionException",
     "ConfigurationException",
+
+    # Logging
+    "get_logger",
+    "CorrelationIdContext",
+    "set_correlation_id",
+    "get_correlation_id",
+    "clear_correlation_id",
+    "log_function_call",
+
+
+
+
+    # Security
+    "hash_password",
+    "verify_password",
+    "create_access_token",
+    "create_refresh_token",
+    "decode_access_token",
+    "decode_refresh_token",
+    "encrypt_token",
+    "decrypt_token",
+    "verify_webhook_signature",
+    "generate_webhook_signature",
+    "mask_token",
+
+    # Constants module (import as: from app.core import constants)
+    "constants",
+
+    # Idempotency
+    "generate_idempotency_key",
+    "generate_simple_idempotency_key",
+    "parse_idempotency_key",
+    "validate_idempotency_key",
+    "generate_correlation_id",
+    "generate_request_id",
+    "hash_dict",
 ]
