@@ -8,6 +8,7 @@ from app.models.event import Event, EventStatus, EventType, EntityType
 from app.models import Event 
 
 
+
 def test_event_creation():
     """Test basic event creation."""
     event = Event(

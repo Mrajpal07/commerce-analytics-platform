@@ -104,13 +104,14 @@ class User(BaseModel, TenantMixin, Base):
         doc="The tenant this user belongs to"
     )
     
-    refresh_tokens = relationship(
-        "RefreshToken",
-        back_populates="user",
-        cascade="all, delete-orphan",
-        lazy="dynamic",
-        doc="User's refresh tokens for JWT token rotation"
-    )
+    # Note: RefreshToken model not yet implemented
+    # refresh_tokens = relationship(
+    #     "RefreshToken",
+    #     back_populates="user",
+    #     cascade="all, delete-orphan",
+    #     lazy="dynamic",
+    #     doc="User's refresh tokens for JWT token rotation"
+    # )
     
     # ============================================================
     # TABLE CONSTRAINTS

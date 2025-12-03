@@ -7,6 +7,8 @@ from datetime import datetime
 from sqlalchemy import Column, String
 from app.models.base import Base, BaseModel, TenantMixin, get_tenant_filter
 from app.models import Tenant
+from app.models import Base, BaseModel, TenantMixin
+
 
 
 class DummyModel(BaseModel, Base):
