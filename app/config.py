@@ -7,7 +7,7 @@ Provides singleton access to configuration throughout the application.
 
 from functools import lru_cache
 from typing import Optional, List
-from pydantic import Field, validator
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -128,10 +128,11 @@ class Settings(BaseSettings):
     )
     
     # ============================================================================
-    # VALIDATORS
+    # VALIDATORS (Pydantic V2 Style)
     # ============================================================================
     
-    @validator("APP_ENV")
+    @field_validator("APP_ENV")
+    @classmethod
     def validate_environment(cls, v: str) -> str:
         """Ensure APP_ENV is one of the allowed values."""
         allowed = {"development", "production", "testing", "staging"}
@@ -139,7 +140,8 @@ class Settings(BaseSettings):
             raise ValueError(f"APP_ENV must be one of {allowed}, got '{v}'")
         return v.lower()
     
-    @validator("LOG_LEVEL")
+    @field_validator("LOG_LEVEL")
+    @classmethod
     def validate_log_level(cls, v: str) -> str:
         """Ensure LOG_LEVEL is valid."""
         allowed = {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}
@@ -148,7 +150,8 @@ class Settings(BaseSettings):
             raise ValueError(f"LOG_LEVEL must be one of {allowed}, got '{v}'")
         return v_upper
     
-    @validator("DATABASE_URL")
+    @field_validator("DATABASE_URL")
+    @classmethod
     def validate_database_url(cls, v: str) -> str:
         """Ensure DATABASE_URL starts with postgresql://"""
         if not v.startswith(("postgresql://", "postgresql+asyncpg://")):
@@ -157,14 +160,16 @@ class Settings(BaseSettings):
             )
         return v
     
-    @validator("JWT_SECRET_KEY")
+    @field_validator("JWT_SECRET_KEY")
+    @classmethod
     def validate_jwt_secret(cls, v: str) -> str:
         """Ensure JWT secret is strong enough."""
         if len(v) < 32:
             raise ValueError("JWT_SECRET_KEY must be at least 32 characters long")
         return v
     
-    @validator("CORS_ORIGINS")
+    @field_validator("CORS_ORIGINS")
+    @classmethod
     def parse_cors_origins(cls, v: str) -> str:
         """Validate CORS origins format."""
         origins = [origin.strip() for origin in v.split(",")]
