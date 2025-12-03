@@ -6,6 +6,7 @@ import pytest
 from datetime import datetime
 from sqlalchemy import Column, String
 from app.models.base import Base, BaseModel, TenantMixin, get_tenant_filter
+from app.models import Tenant
 
 
 class DummyModel(BaseModel, Base):

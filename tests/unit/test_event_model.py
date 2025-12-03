@@ -5,6 +5,7 @@ Unit tests for Event model.
 import pytest
 from datetime import datetime, timedelta
 from app.models.event import Event, EventStatus, EventType, EntityType
+from app.models import Event 
 
 
 def test_event_creation():

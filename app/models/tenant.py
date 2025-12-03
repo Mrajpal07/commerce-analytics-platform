@@ -6,6 +6,7 @@ Each tenant has their own isolated data.
 """
 
 from sqlalchemy import Column, String, Text, Boolean, DateTime
+from sqlalchemy.orm import relationship
 
 from app.models.base import Base, BaseModel
 
@@ -69,6 +70,15 @@ class Tenant(BaseModel, Base):
         doc="Last successful data synchronization timestamp"
     )
     
+    
+    users = relationship(
+        "User", 
+        back_populates="tenant", 
+        cascade="all, delete-orphan",
+        doc="Users belonging to this tenant"
+    )
+    
     def __repr__(self) -> str:
         """String representation."""
         return f"<Tenant(id={self.id}, name='{self.name}', domain='{self.shopify_domain}')>"
+    
