@@ -1,29 +1,26 @@
-"""
-Pytest configuration and fixtures.
-
-IMPORTANT: Environment variables must be set BEFORE any app imports.
-"""
-
 import os
+import pytest
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+from app.models.base import Base
 
-# ============================================================================
-# SET ENVIRONMENT VARIABLES FIRST - BEFORE ANY IMPORTS
-# ============================================================================
-
-# Set all required env vars immediately
+# Valid base64-encoded 32-byte key for Fernet
 os.environ["DATABASE_URL"] = "postgresql://test:test@localhost:5432/test_db"
-os.environ["JWT_SECRET_KEY"] = "test-jwt-secret-key-minimum-32-characters-long-for-testing-purposes-only"
+os.environ["JWT_SECRET_KEY"] = "Mffes6zNTzWq8dBqbAfTS_x942oEkDvB0P3CgP8YstE"
 os.environ["FERNET_ENCRYPTION_KEY"] = "r9IYhjOcgRj1cAajIeVERgLjQyUAqf0ZzA9Kc1yyn-A="
-os.environ["APP_ENV"] = "testing"
-os.environ["LOG_LEVEL"] = "INFO"
 os.environ["REDIS_URL"] = "redis://localhost:6379/0"
 os.environ["CELERY_BROKER_URL"] = "redis://localhost:6379/0"
-os.environ["CELERY_RESULT_BACKEND"] = "redis://localhost:6379/1"
+os.environ["APP_ENV"] = "testing"
+os.environ["LOG_LEVEL"] = "INFO"
 
-# Now it's safe to import
-import sys
-from pathlib import Path
-
-# Add project root to Python path
-project_root = Path(__file__).parent.parent
-sys.path.insert(0, str(project_root))
+@pytest.fixture(scope="function")
+def db_session():
+    engine = create_engine("sqlite:///:memory:")
+    Base.metadata.create_all(engine)
+    SessionLocal = sessionmaker(bind=engine)
+    session = SessionLocal()
+    
+    yield session
+    
+    session.close()
+    Base.metadata.drop_all(engine)

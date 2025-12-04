@@ -21,6 +21,7 @@ from sqlalchemy import (
     DateTime,
     Index,
     CheckConstraint,
+    JSON,
 )
 from sqlalchemy.dialects.postgresql import JSONB
 
@@ -142,7 +143,7 @@ class Event(BaseModel, TenantMixin, Base):
     # ========================================================================
     
     payload = Column(
-        JSONB,
+        JSON().with_variant(JSONB, "postgresql"),
         nullable=False,
         doc="Complete event data (INV-5: Auditability)"
     )

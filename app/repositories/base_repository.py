@@ -1,0 +1,40 @@
+from typing import TypeVar, Generic, Type, Optional, List
+from sqlalchemy.orm import Session
+from app.models.base import Base
+
+ModelType = TypeVar("ModelType", bound=Base)
+
+
+class BaseRepository(Generic[ModelType]):
+    def __init__(self, model: Type[ModelType], db: Session):
+        self.model = model
+        self.db = db
+    
+    def get(self, id: int) -> Optional[ModelType]:
+        return self.db.query(self.model).filter(self.model.id == id).first()
+    
+    def get_by_tenant(self, tenant_id: int, id: int) -> Optional[ModelType]:
+        return self.db.query(self.model).filter(
+            self.model.tenant_id == tenant_id,
+            self.model.id == id
+        ).first()
+    
+    def list_by_tenant(self, tenant_id: int, skip: int = 0, limit: int = 100) -> List[ModelType]:
+        return self.db.query(self.model).filter(
+            self.model.tenant_id == tenant_id
+        ).offset(skip).limit(limit).all()
+    
+    def create(self, obj: ModelType) -> ModelType:
+        self.db.add(obj)
+        self.db.flush()
+        self.db.refresh(obj)
+        return obj
+    
+    def update(self, obj: ModelType) -> ModelType:
+        self.db.flush()
+        self.db.refresh(obj)
+        return obj
+    
+    def delete(self, obj: ModelType) -> None:
+        self.db.delete(obj)
+        self.db.flush()

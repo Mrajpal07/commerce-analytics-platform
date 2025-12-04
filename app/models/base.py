@@ -8,8 +8,7 @@ from datetime import datetime
 from typing import Any, Dict
 
 from sqlalchemy import Column, BigInteger, Integer, DateTime, ForeignKey, Index
-from sqlalchemy.orm import declared_attr, relationship
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import declared_attr, relationship, declarative_base
 
 # Create declarative base
 Base = declarative_base()
@@ -28,7 +27,8 @@ class BaseModel:
     """
     
     # Primary key
-    id = Column(BigInteger, primary_key=True, index=True, autoincrement=True)
+    # Use Integer for SQLite compatibility (autoincrement), BigInteger for PostgreSQL
+    id = Column(Integer().with_variant(BigInteger, "postgresql"), primary_key=True, index=True, autoincrement=True)
     
     # Timestamps
     created_at = Column(

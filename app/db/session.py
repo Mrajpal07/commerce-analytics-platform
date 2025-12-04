@@ -51,18 +51,28 @@ SessionLocal = sessionmaker(
 def set_postgresql_pragmas(dbapi_conn, connection_record):
     """
     Set PostgreSQL connection parameters for optimal performance.
-    
+
     This runs once per new connection.
+    Only executes for PostgreSQL connections (skips SQLite for testing).
     """
-    cursor = dbapi_conn.cursor()
-    
-    # Set statement timeout (30 seconds)
-    cursor.execute("SET statement_timeout = '30s'")
-    
-    # Set timezone to UTC
-    cursor.execute("SET timezone = 'UTC'")
-    
-    cursor.close()
+    # Check if this is a PostgreSQL connection
+    # SQLite connections won't have a 'server_version' attribute or will fail on PostgreSQL commands
+    try:
+        cursor = dbapi_conn.cursor()
+
+        # Only execute PostgreSQL-specific commands if this is a PostgreSQL connection
+        # This check works because these SET commands will fail on non-PostgreSQL databases
+        if hasattr(dbapi_conn, '__class__') and 'psycopg' in dbapi_conn.__class__.__module__:
+            # Set statement timeout (30 seconds)
+            cursor.execute("SET statement_timeout = '30s'")
+
+            # Set timezone to UTC
+            cursor.execute("SET timezone = 'UTC'")
+
+        cursor.close()
+    except Exception:
+        # If any error occurs (e.g., on SQLite), just skip the PostgreSQL pragmas
+        pass
 
 
 # ============================================================================
