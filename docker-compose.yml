@@ -3,22 +3,45 @@ version: '3.8'
 services:
   postgres:
     image: postgres:15-alpine
+    container_name: commerce-analytics-postgres
+    restart: unless-stopped
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
       POSTGRES_DB: commerce_analytics
+      # Performance tuning for production
+      POSTGRES_SHARED_BUFFERS: 256MB
+      POSTGRES_EFFECTIVE_CACHE_SIZE: 1GB
+      POSTGRES_MAINTENANCE_WORK_MEM: 64MB
+      POSTGRES_CHECKPOINT_COMPLETION_TARGET: 0.9
+      POSTGRES_WAL_BUFFERS: 16MB
+      POSTGRES_DEFAULT_STATISTICS_TARGET: 100
+      POSTGRES_RANDOM_PAGE_COST: 1.1
+      POSTGRES_EFFECTIVE_IO_CONCURRENCY: 200
+      POSTGRES_WORK_MEM: 4MB
+      POSTGRES_MIN_WAL_SIZE: 1GB
+      POSTGRES_MAX_WAL_SIZE: 4GB
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d
+      - ./docker/postgres/conf/postgresql.conf:/etc/postgresql/postgresql.conf:ro
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user"]
+      test: ["CMD-SHELL", "pg_isready -U user -d commerce_analytics"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
+    networks:
+      - commerce-network
 
   redis:
     image: redis:7-alpine
+    container_name: commerce-analytics-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
     ports:
       - "6379:6379"
     volumes:
@@ -28,9 +51,14 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 5s
+    networks:
+      - commerce-network
 
   api:
     build: .
+    container_name: commerce-analytics-api
+    restart: unless-stopped
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     volumes:
       - .:/app
@@ -43,9 +71,13 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    networks:
+      - commerce-network
 
   celery_worker:
     build: .
+    container_name: commerce-analytics-celery-worker
+    restart: unless-stopped
     command: celery -A app.tasks.celery_app worker --loglevel=info --concurrency=4
     volumes:
       - .:/app
@@ -56,9 +88,13 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    networks:
+      - commerce-network
 
   celery_beat:
     build: .
+    container_name: commerce-analytics-celery-beat
+    restart: unless-stopped
     command: celery -A app.tasks.celery_app beat --loglevel=info
     volumes:
       - .:/app
@@ -69,7 +105,35 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    networks:
+      - commerce-network
+
+  # pgAdmin for database management (optional, comment out in production)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: commerce-analytics-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@commerce-analytics.local
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - postgres
+    networks:
+      - commerce-network
 
 volumes:
   postgres_data:
+    driver: local
   redis_data:
+    driver: local
+  pgadmin_data:
+    driver: local
+
+networks:
+  commerce-network:
+    driver: bridge

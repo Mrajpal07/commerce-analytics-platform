@@ -61,3 +61,22 @@ celerybeat.pid
 
 # Alembic
 alembic/versions/*.pyc
+
+# Docker
+docker/postgres/data/
+docker/redis/data/
+.env.production
+
+# Backups
+backups/
+*.sql.gz
+*.dump
+
+# Ignore SQL backups but not init scripts
+*.sql
+!docker/postgres/init/*.sql
+!alembic/versions/*.sql
+
+# PostgreSQL
+pgdata/
+postgres_data/
